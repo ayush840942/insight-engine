@@ -14,7 +14,172 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      apps: {
+        Row: {
+          app_id: string
+          app_name: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          developer: string | null
+          icon_url: string | null
+          id: string
+          installs: string | null
+          rating: number | null
+          raw_data: Json | null
+          screenshots: string[] | null
+          user_id: string
+        }
+        Insert: {
+          app_id: string
+          app_name?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          developer?: string | null
+          icon_url?: string | null
+          id?: string
+          installs?: string | null
+          rating?: number | null
+          raw_data?: Json | null
+          screenshots?: string[] | null
+          user_id: string
+        }
+        Update: {
+          app_id?: string
+          app_name?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          developer?: string | null
+          icon_url?: string | null
+          id?: string
+          installs?: string | null
+          rating?: number | null
+          raw_data?: Json | null
+          screenshots?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          credits_remaining: number
+          email: string | null
+          id: string
+          name: string | null
+          subscription_plan: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          credits_remaining?: number
+          email?: string | null
+          id?: string
+          name?: string | null
+          subscription_plan?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          credits_remaining?: number
+          email?: string | null
+          id?: string
+          name?: string | null
+          subscription_plan?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          analysis_json: Json | null
+          app_id: string
+          created_at: string
+          growth_score: number | null
+          id: string
+          monetization_score: number | null
+          report_type: string
+          retention_score: number | null
+          user_id: string
+          ux_score: number | null
+        }
+        Insert: {
+          analysis_json?: Json | null
+          app_id: string
+          created_at?: string
+          growth_score?: number | null
+          id?: string
+          monetization_score?: number | null
+          report_type?: string
+          retention_score?: number | null
+          user_id: string
+          ux_score?: number | null
+        }
+        Update: {
+          analysis_json?: Json | null
+          app_id?: string
+          created_at?: string
+          growth_score?: number | null
+          id?: string
+          monetization_score?: number | null
+          report_type?: string
+          retention_score?: number | null
+          user_id?: string
+          ux_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          app_id: string
+          created_at: string
+          id: string
+          rating: number | null
+          review_text: string | null
+          reviewer_name: string | null
+          sentiment: string | null
+        }
+        Insert: {
+          app_id: string
+          created_at?: string
+          id?: string
+          rating?: number | null
+          review_text?: string | null
+          reviewer_name?: string | null
+          sentiment?: string | null
+        }
+        Update: {
+          app_id?: string
+          created_at?: string
+          id?: string
+          rating?: number | null
+          review_text?: string | null
+          reviewer_name?: string | null
+          sentiment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
