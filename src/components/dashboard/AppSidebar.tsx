@@ -10,10 +10,13 @@ import {
   LogOut,
   Zap,
   Crown,
+  Lock,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useCredits } from "@/hooks/use-credits";
+import { FEATURE_ACCESS } from "@/components/PlanGate";
 import {
   Sidebar,
   SidebarContent,
@@ -28,26 +31,33 @@ import {
 import { Button } from "@/components/ui/button";
 
 const items = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Analyze App", url: "/dashboard/analyze", icon: Search },
-  { title: "Competitors", url: "/dashboard/competitors", icon: Users },
-  { title: "Reviews", url: "/dashboard/reviews", icon: MessageSquareText },
-  { title: "Monetization", url: "/dashboard/monetization", icon: DollarSign },
-  { title: "Growth Plan", url: "/dashboard/growth", icon: Rocket },
-  { title: "Reports", url: "/dashboard/reports", icon: FileText },
-  { title: "Settings", url: "/dashboard/settings", icon: Settings },
-  { title: "Upgrade", url: "/dashboard/upgrade", icon: Crown },
+  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, feature: null },
+  { title: "Analyze App", url: "/dashboard/analyze", icon: Search, feature: "analyze" },
+  { title: "Competitors", url: "/dashboard/competitors", icon: Users, feature: "competitors" },
+  { title: "Reviews", url: "/dashboard/reviews", icon: MessageSquareText, feature: "reviews" },
+  { title: "Monetization", url: "/dashboard/monetization", icon: DollarSign, feature: "monetization" },
+  { title: "Growth Plan", url: "/dashboard/growth", icon: Rocket, feature: "growth" },
+  { title: "Reports", url: "/dashboard/reports", icon: FileText, feature: "reports" },
+  { title: "Settings", url: "/dashboard/settings", icon: Settings, feature: null },
+  { title: "Upgrade", url: "/dashboard/upgrade", icon: Crown, feature: null },
 ];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const location = useLocation();
   const navigate = useNavigate();
+  const { plan } = useCredits();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  const isLocked = (feature: string | null) => {
+    if (!feature) return false;
+    const allowed = FEATURE_ACCESS[feature];
+    if (!allowed) return false;
+    return !allowed.includes(plan);
   };
 
   return (
@@ -60,21 +70,29 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink
-                      to={item.url}
-                      end={item.url === "/dashboard"}
-                      className="hover:bg-muted/50"
-                      activeClassName="bg-primary/10 text-primary font-medium"
-                    >
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((item) => {
+                const locked = isLocked(item.feature);
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink
+                        to={item.url}
+                        end={item.url === "/dashboard"}
+                        className={`hover:bg-muted/50 ${locked ? "opacity-60" : ""}`}
+                        activeClassName="bg-primary/10 text-primary font-medium"
+                      >
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {!collapsed && (
+                          <span className="flex items-center gap-2">
+                            {item.title}
+                            {locked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                          </span>
+                        )}
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
