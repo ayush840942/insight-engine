@@ -8,7 +8,6 @@ import {
   FileText,
   Settings,
   LogOut,
-  Zap,
   Crown,
   Lock,
 } from "lucide-react";
@@ -64,8 +63,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <div className="p-4 flex items-center gap-2">
-          <Zap className="w-6 h-6 text-primary flex-shrink-0" />
-          {!collapsed && <span className="font-bold font-display text-sm">Mobile Wisdom AI</span>}
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+            <span className="text-primary-foreground font-bold text-xs">MW</span>
+          </div>
+          {!collapsed && <span className="font-semibold text-sm">Mobile Wisdom AI</span>}
         </div>
         <SidebarGroup>
           <SidebarGroupContent>
@@ -78,8 +79,8 @@ export function AppSidebar() {
                       <NavLink
                         to={item.url}
                         end={item.url === "/dashboard"}
-                        className={`hover:bg-muted/50 ${locked ? "opacity-60" : ""}`}
-                        activeClassName="bg-primary/10 text-primary font-medium"
+                        className={`hover:bg-secondary ${locked ? "opacity-50" : ""}`}
+                        activeClassName="bg-secondary text-foreground font-medium"
                       >
                         <item.icon className="mr-2 h-4 w-4" />
                         {!collapsed && (

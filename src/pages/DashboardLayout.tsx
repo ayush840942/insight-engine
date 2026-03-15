@@ -32,20 +32,20 @@ const DashboardLayout = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+        <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
       </div>
     );
   }
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
         <div className="flex-1 flex flex-col">
-          <header className="h-14 flex items-center border-b border-border px-4">
+          <header className="h-14 flex items-center border-b border-border px-4 bg-card">
             <SidebarTrigger />
           </header>
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto bg-background">
             <Outlet />
           </main>
         </div>

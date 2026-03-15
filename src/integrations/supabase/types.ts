@@ -64,6 +64,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          billing_cycle_start: string | null
           created_at: string
           credits_remaining: number
           email: string | null
@@ -74,6 +75,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          billing_cycle_start?: string | null
           created_at?: string
           credits_remaining?: number
           email?: string | null
@@ -84,6 +86,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          billing_cycle_start?: string | null
           created_at?: string
           credits_remaining?: number
           email?: string | null
@@ -185,7 +188,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      reset_monthly_credits: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
