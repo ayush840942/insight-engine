@@ -38,12 +38,13 @@ const CURRENCY_MAP: Record<string, CurrencyInfo> = {
 
 const DEFAULT_CURRENCY: CurrencyInfo = CURRENCY_MAP.US;
 
-// Base prices in INR
+// Base prices in INR (calculated for 70%+ profit margin)
+// Costs: ~₹11/analysis + overhead. Margin targets: Starter 74%, Pro 70%, Agency 71%
 const BASE_PRICES_INR = {
   free: 0,
-  starter: 1200,
-  pro: 2900,
-  agency: 7900,
+  starter: 1999,
+  pro: 4999,
+  agency: 19999,
 };
 
 function formatPrice(amount: number, currency: CurrencyInfo): string {
