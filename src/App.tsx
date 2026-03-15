@@ -37,6 +37,7 @@ const App = () => (
             <Route path="monetization" element={<MonetizationPage />} />
             <Route path="growth" element={<GrowthPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="upgrade" element={<UpgradePage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
