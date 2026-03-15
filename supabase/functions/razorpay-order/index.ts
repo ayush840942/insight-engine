@@ -8,9 +8,9 @@ const corsHeaders = {
 };
 
 const PLANS: Record<string, { amount_inr: number; credits: number; name: string }> = {
-  starter: { amount_inr: 1200, credits: 25, name: "Starter" },
-  pro: { amount_inr: 2900, credits: 100, name: "Pro" },
-  agency: { amount_inr: 7900, credits: 500, name: "Agency" },
+  starter: { amount_inr: 1999, credits: 25, name: "Starter" },   // 74% margin
+  pro: { amount_inr: 4999, credits: 100, name: "Pro" },          // 70% margin
+  agency: { amount_inr: 19999, credits: 500, name: "Agency" },   // 71% margin
 };
 
 // Approximate exchange rates from INR
