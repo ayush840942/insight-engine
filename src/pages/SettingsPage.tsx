@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Crown } from "lucide-react";
 
 const SettingsPage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [name, setName] = useState("");
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -39,6 +42,28 @@ const SettingsPage = () => {
         <h1 className="text-3xl font-bold font-display">Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account</p>
       </div>
+
+      {/* Plan Card */}
+      <div className="p-6 rounded-2xl border border-primary/20 bg-primary/5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-bold font-display flex items-center gap-2">
+              <Crown className="w-5 h-5 text-primary" />
+              <span className="capitalize">{profile?.subscription_plan || "free"}</span> Plan
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {profile?.credits_remaining ?? 0} analyses remaining this month
+            </p>
+          </div>
+          <Button
+            onClick={() => navigate("/dashboard/upgrade")}
+            className="bg-gradient-primary text-primary-foreground hover:opacity-90 rounded-xl"
+          >
+            Upgrade
+          </Button>
+        </div>
+      </div>
+
       <div className="p-6 rounded-2xl bg-gradient-card border border-border space-y-4">
         <div className="space-y-2">
           <Label>Email</Label>
@@ -47,14 +72,6 @@ const SettingsPage = () => {
         <div className="space-y-2">
           <Label>Name</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} className="bg-secondary border-border" />
-        </div>
-        <div className="space-y-2">
-          <Label>Plan</Label>
-          <Input disabled value={profile?.subscription_plan || "free"} className="bg-secondary border-border capitalize" />
-        </div>
-        <div className="space-y-2">
-          <Label>Credits Remaining</Label>
-          <Input disabled value={profile?.credits_remaining?.toString() || "0"} className="bg-secondary border-border" />
         </div>
         <Button onClick={handleSave} className="bg-gradient-primary text-primary-foreground hover:opacity-90 rounded-xl">
           Save Changes

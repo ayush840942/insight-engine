@@ -6,6 +6,9 @@ import {
   DollarSign,
   Rocket,
   Flame,
+  Search,
+  BarChart3,
+  Target,
 } from "lucide-react";
 
 const features = [
@@ -26,7 +29,7 @@ const features = [
   },
   {
     icon: DollarSign,
-    title: "Monetization Analyzer",
+    title: "Monetization Optimizer",
     description: "Detect monetization models and get AI suggestions to improve revenue with estimated potential.",
   },
   {
@@ -38,6 +41,21 @@ const features = [
     icon: Flame,
     title: "App Roast Mode",
     description: "Get a brutally honest critique of your app with no-BS feedback on what's killing growth.",
+  },
+  {
+    icon: Search,
+    title: "ASO Keyword Suggestions",
+    description: "Discover high-impact keywords and optimize your store listing to rank higher in search results.",
+  },
+  {
+    icon: BarChart3,
+    title: "User Acquisition Tactics",
+    description: "AI recommends the best channels, ad strategies, and viral loops to acquire users cost-effectively.",
+  },
+  {
+    icon: Target,
+    title: "Retention Strategies",
+    description: "Identify churn risks and get personalized push notification, onboarding, and engagement strategies.",
   },
 ];
 

@@ -14,6 +14,7 @@ import CompetitorsPage from "./pages/CompetitorsPage";
 import MonetizationPage from "./pages/MonetizationPage";
 import GrowthPage from "./pages/GrowthPage";
 import SettingsPage from "./pages/SettingsPage";
+import UpgradePage from "./pages/UpgradePage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="monetization" element={<MonetizationPage />} />
             <Route path="growth" element={<GrowthPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="upgrade" element={<UpgradePage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

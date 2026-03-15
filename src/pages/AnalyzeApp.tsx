@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useCredits } from "@/hooks/use-credits";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Loader2, TrendingUp, Shield, DollarSign, Rocket, Flame, Star } from "lucide-react";
+import { Search, Loader2, TrendingUp, Shield, DollarSign, Rocket, Flame, Star, Lock } from "lucide-react";
 
 interface AnalysisResult {
   app_name: string;
@@ -26,11 +27,24 @@ const AnalyzeApp = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+  const { credits, plan, hasCredits, deductCredit, loading: creditsLoading } = useCredits();
+  const navigate = useNavigate();
 
   const handleAnalyze = async () => {
     if (!url.trim()) return;
 
-    // Extract app ID from URL
+    // Credit check
+    if (!hasCredits) {
+      toast({
+        title: "No Credits Remaining",
+        description: plan === "free"
+          ? "Free plan includes 1 analysis. Upgrade to get more!"
+          : "You've used all your credits this month. Upgrade for more.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const match = url.match(/id=([a-zA-Z0-9._]+)/);
     if (!match) {
       toast({ title: "Invalid URL", description: "Please paste a valid Google Play Store URL.", variant: "destructive" });
@@ -41,6 +55,13 @@ const AnalyzeApp = () => {
     setResult(null);
 
     try {
+      // Deduct credit first
+      const deducted = await deductCredit();
+      if (!deducted) {
+        toast({ title: "No Credits", description: "Unable to deduct credit. Please upgrade.", variant: "destructive" });
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke("analyze-app", {
         body: { appId: match[1], url: url.trim() },
       });
@@ -65,10 +86,48 @@ const AnalyzeApp = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold font-display">Analyze App</h1>
-        <p className="text-muted-foreground mt-1">Paste a Google Play Store URL to get AI-powered insights</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-display">Analyze App</h1>
+          <p className="text-muted-foreground mt-1">Paste a Google Play Store URL to get AI-powered insights</p>
+        </div>
+        {!creditsLoading && (
+          <div className="text-right">
+            <div className="text-sm text-muted-foreground">Credits remaining</div>
+            <div className={`text-2xl font-bold font-display ${hasCredits ? "text-primary" : "text-destructive"}`}>
+              {credits}
+            </div>
+            <span className="text-xs text-muted-foreground capitalize">{plan} plan</span>
+          </div>
+        )}
       </div>
+
+      {/* Upgrade banner for free users with no credits */}
+      {!creditsLoading && !hasCredits && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-5 rounded-2xl border border-primary/30 bg-primary/5 flex items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <Lock className="w-8 h-8 text-primary flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold font-display">You've used all your analyses</h3>
+              <p className="text-sm text-muted-foreground">
+                {plan === "free"
+                  ? "Free plan includes 1 analysis. Upgrade to unlock up to 500 analyses/month."
+                  : "Upgrade to a higher plan for more monthly analyses."}
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => navigate("/dashboard/upgrade")}
+            className="bg-gradient-primary text-primary-foreground hover:opacity-90 rounded-xl whitespace-nowrap"
+          >
+            Upgrade Now
+          </Button>
+        </motion.div>
+      )}
 
       <div className="flex gap-3">
         <div className="flex-1 relative">
@@ -83,7 +142,7 @@ const AnalyzeApp = () => {
         </div>
         <Button
           onClick={handleAnalyze}
-          disabled={loading || !url.trim()}
+          disabled={loading || !url.trim() || (!hasCredits && !creditsLoading)}
           className="h-12 px-6 bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90"
         >
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Analyze"}
@@ -91,11 +150,7 @@ const AnalyzeApp = () => {
       </div>
 
       {loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
           <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
           <p className="text-lg font-display">Analyzing app with AI...</p>
           <p className="text-sm text-muted-foreground mt-1">This may take 15-30 seconds</p>
@@ -104,18 +159,12 @@ const AnalyzeApp = () => {
 
       <AnimatePresence>
         {result && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
-          >
-            {/* App Name & Summary */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
             <div className="p-6 rounded-2xl bg-gradient-card border border-border">
               <h2 className="text-2xl font-bold font-display mb-2">{result.app_name}</h2>
               <p className="text-muted-foreground">{result.summary}</p>
             </div>
 
-            {/* Score Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 { label: "UX Score", score: result.ux_score, icon: Shield },
@@ -131,7 +180,6 @@ const AnalyzeApp = () => {
               ))}
             </div>
 
-            {/* Strengths & Weaknesses */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -159,7 +207,6 @@ const AnalyzeApp = () => {
               </div>
             </div>
 
-            {/* Recommendations */}
             <div className="p-6 rounded-2xl bg-gradient-card border border-border">
               <h3 className="font-bold font-display mb-3 flex items-center gap-2">
                 <Rocket className="w-5 h-5 text-accent" /> Recommendations
@@ -173,7 +220,6 @@ const AnalyzeApp = () => {
               </ul>
             </div>
 
-            {/* Roast */}
             {result.roast && (
               <div className="p-6 rounded-2xl border border-destructive/30 bg-destructive/5">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">

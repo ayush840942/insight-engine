@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Zap,
+  Crown,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -35,6 +36,7 @@ const items = [
   { title: "Growth Plan", url: "/dashboard/growth", icon: Rocket },
   { title: "Reports", url: "/dashboard/reports", icon: FileText },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
+  { title: "Upgrade", url: "/dashboard/upgrade", icon: Crown },
 ];
 
 export function AppSidebar() {
