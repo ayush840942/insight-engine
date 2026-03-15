@@ -2,20 +2,38 @@ import { useState } from "react";
 import { useLastApp } from "@/hooks/use-last-app";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCredits } from "@/hooks/use-credits";
 import { Rocket, Loader2, CheckCircle, Sparkles, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
+import { PlanGate } from "@/components/PlanGate";
+import { useNavigate } from "react-router-dom";
 
-const GrowthPage = () => {
+const GrowthContent = () => {
   const { app, loading: appLoading } = useLastApp();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const { toast } = useToast();
+  const { hasCredits, deductCredit } = useCredits();
+  const navigate = useNavigate();
 
   const handleAnalyze = async () => {
     if (!app) return;
+
+    if (!hasCredits) {
+      toast({ title: "No Credits", description: "You've used all your credits. Upgrade for more.", variant: "destructive" });
+      navigate("/dashboard/upgrade");
+      return;
+    }
+
     setLoading(true);
     try {
+      const deducted = await deductCredit();
+      if (!deducted) {
+        toast({ title: "No Credits", description: "Unable to deduct credit.", variant: "destructive" });
+        return;
+      }
+
       const { data: result, error } = await supabase.functions.invoke("growth-plan", {
         body: { appId: app.app_id, appData: { appName: app.app_name, description: app.description } },
       });
@@ -48,6 +66,7 @@ const GrowthPage = () => {
         <div className="text-center py-16 rounded-2xl bg-gradient-card border border-border">
           <Rocket className="w-10 h-10 text-primary mx-auto mb-3" />
           <p className="text-lg font-display mb-2">Ready to generate growth plan for <strong>{app.app_name}</strong></p>
+          <p className="text-xs text-muted-foreground mb-3">Uses 1 credit</p>
           <Button onClick={handleAnalyze} disabled={loading} className="bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Generating...</> : "Generate Growth Plan"}
           </Button>
@@ -64,7 +83,6 @@ const GrowthPage = () => {
       <AnimatePresence>
         {data && !loading && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            {/* Weekly Plan */}
             <div className="space-y-4">
               {data.weeks?.map((week: any, i: number) => (
                 <motion.div
@@ -95,7 +113,6 @@ const GrowthPage = () => {
               ))}
             </div>
 
-            {/* Viral Strategies */}
             {data.viral_strategies && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -111,7 +128,6 @@ const GrowthPage = () => {
               </div>
             )}
 
-            {/* ASO Tips */}
             {data.aso_tips && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -132,5 +148,11 @@ const GrowthPage = () => {
     </div>
   );
 };
+
+const GrowthPage = () => (
+  <PlanGate feature="growth">
+    <GrowthContent />
+  </PlanGate>
+);
 
 export default GrowthPage;

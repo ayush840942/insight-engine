@@ -2,21 +2,38 @@ import { useState } from "react";
 import { useLastApp } from "@/hooks/use-last-app";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Loader2, Shield, Star, AlertTriangle } from "lucide-react";
+import { useCredits } from "@/hooks/use-credits";
+import { Users, Loader2, Shield, Star, AlertTriangle, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
+import { PlanGate } from "@/components/PlanGate";
+import { useNavigate } from "react-router-dom";
 
-const CompetitorsPage = () => {
+const CompetitorsContent = () => {
   const { app, loading: appLoading } = useLastApp();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const { toast } = useToast();
+  const { hasCredits, deductCredit } = useCredits();
+  const navigate = useNavigate();
 
   const handleAnalyze = async () => {
     if (!app) return;
+
+    if (!hasCredits) {
+      toast({ title: "No Credits", description: "You've used all your credits. Upgrade for more.", variant: "destructive" });
+      navigate("/dashboard/upgrade");
+      return;
+    }
+
     setLoading(true);
     try {
+      const deducted = await deductCredit();
+      if (!deducted) {
+        toast({ title: "No Credits", description: "Unable to deduct credit.", variant: "destructive" });
+        return;
+      }
+
       const { data: result, error } = await supabase.functions.invoke("analyze-competitors", {
         body: { appId: app.app_id, appName: app.app_name, description: app.description },
       });
@@ -49,6 +66,7 @@ const CompetitorsPage = () => {
         <div className="text-center py-16 rounded-2xl bg-gradient-card border border-border">
           <Users className="w-10 h-10 text-primary mx-auto mb-3" />
           <p className="text-lg font-display mb-2">Ready to analyze competitors for <strong>{app.app_name}</strong></p>
+          <p className="text-xs text-muted-foreground mb-3">Uses 1 credit</p>
           <Button onClick={handleAnalyze} disabled={loading} className="bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Analyzing...</> : "Analyze Competitors"}
           </Button>
@@ -142,5 +160,11 @@ const CompetitorsPage = () => {
     </div>
   );
 };
+
+const CompetitorsPage = () => (
+  <PlanGate feature="competitors">
+    <CompetitorsContent />
+  </PlanGate>
+);
 
 export default CompetitorsPage;

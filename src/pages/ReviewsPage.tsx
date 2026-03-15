@@ -2,21 +2,38 @@ import { useState } from "react";
 import { useLastApp } from "@/hooks/use-last-app";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCredits } from "@/hooks/use-credits";
 import { FileText, Loader2, ThumbsUp, ThumbsDown, Minus, Lightbulb, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
+import { PlanGate } from "@/components/PlanGate";
+import { useNavigate } from "react-router-dom";
 
-const ReviewsPage = () => {
+const ReviewsContent = () => {
   const { app, loading: appLoading } = useLastApp();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const { toast } = useToast();
+  const { hasCredits, deductCredit } = useCredits();
+  const navigate = useNavigate();
 
   const handleAnalyze = async () => {
     if (!app) return;
+
+    if (!hasCredits) {
+      toast({ title: "No Credits", description: "You've used all your credits. Upgrade for more.", variant: "destructive" });
+      navigate("/dashboard/upgrade");
+      return;
+    }
+
     setLoading(true);
     try {
+      const deducted = await deductCredit();
+      if (!deducted) {
+        toast({ title: "No Credits", description: "Unable to deduct credit.", variant: "destructive" });
+        return;
+      }
+
       const { data: result, error } = await supabase.functions.invoke("analyze-reviews", {
         body: { appId: app.app_id, appName: app.app_name, description: app.description },
       });
@@ -52,6 +69,7 @@ const ReviewsPage = () => {
         <div className="text-center py-16 rounded-2xl bg-gradient-card border border-border">
           <FileText className="w-10 h-10 text-primary mx-auto mb-3" />
           <p className="text-lg font-display mb-2">Ready to analyze reviews for <strong>{app.app_name}</strong></p>
+          <p className="text-xs text-muted-foreground mb-3">Uses 1 credit</p>
           <Button onClick={handleAnalyze} disabled={loading} className="bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Analyzing...</> : "Analyze Reviews"}
           </Button>
@@ -69,7 +87,6 @@ const ReviewsPage = () => {
       <AnimatePresence>
         {data && !loading && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            {/* Sentiment Overview */}
             {sentiment && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h2 className="font-bold font-display mb-4">Sentiment Overview</h2>
@@ -94,7 +111,6 @@ const ReviewsPage = () => {
               </div>
             )}
 
-            {/* Top Complaints */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -128,7 +144,6 @@ const ReviewsPage = () => {
               </div>
             </div>
 
-            {/* Feature Requests */}
             {data.feature_requests && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -148,7 +163,6 @@ const ReviewsPage = () => {
               </div>
             )}
 
-            {/* Action Items */}
             {data.action_items && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3">Action Items</h3>
@@ -167,5 +181,11 @@ const ReviewsPage = () => {
     </div>
   );
 };
+
+const ReviewsPage = () => (
+  <PlanGate feature="reviews">
+    <ReviewsContent />
+  </PlanGate>
+);
 
 export default ReviewsPage;
