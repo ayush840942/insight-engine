@@ -1,22 +1,21 @@
 import { motion } from "framer-motion";
-import { Check } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useCurrency } from "@/hooks/use-currency";
 
 const plans = [
   {
+    id: "free",
     name: "Free",
-    price: "₹0",
-    period: "/month",
     description: "Try it out",
     features: ["1 analysis per month", "Basic report with scores", "App Roast Mode", "Email support"],
     cta: "Get Started Free",
     highlighted: false,
   },
   {
+    id: "starter",
     name: "Starter",
-    price: "₹1,200",
-    period: "/month",
     description: "For indie developers",
     features: [
       "25 analyses/month",
@@ -30,9 +29,8 @@ const plans = [
     highlighted: false,
   },
   {
+    id: "pro",
     name: "Pro",
-    price: "₹2,900",
-    period: "/month",
     description: "For growth teams",
     features: [
       "100 analyses/month",
@@ -47,9 +45,8 @@ const plans = [
     highlighted: true,
   },
   {
+    id: "agency",
     name: "Agency",
-    price: "₹7,900",
-    period: "/month",
     description: "For agencies & teams",
     features: [
       "500 analyses/month",
@@ -67,6 +64,7 @@ const plans = [
 
 export const PricingSection = () => {
   const navigate = useNavigate();
+  const { getPrice, loading: currencyLoading } = useCurrency();
 
   return (
     <section className="py-24 relative" id="pricing">
@@ -106,8 +104,14 @@ export const PricingSection = () => {
                 <h3 className="text-lg font-semibold font-display">{plan.name}</h3>
                 <p className="text-sm text-muted-foreground">{plan.description}</p>
                 <div className="mt-4">
-                  <span className="text-4xl font-bold font-display">{plan.price}</span>
-                  <span className="text-muted-foreground">{plan.period}</span>
+                  {currencyLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <span className="text-4xl font-bold font-display">{getPrice(plan.id)}</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </>
+                  )}
                 </div>
               </div>
               <ul className="space-y-3 mb-6">

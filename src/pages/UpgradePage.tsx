@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Check, Crown, Zap, Loader2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useCurrency } from "@/hooks/use-currency";
 
 declare global {
   interface Window {
@@ -16,8 +17,6 @@ const plans = [
   {
     id: "free",
     name: "Free",
-    price: "₹0",
-    period: "/month",
     description: "Try it out",
     credits: 1,
     features: [
@@ -32,8 +31,6 @@ const plans = [
   {
     id: "starter",
     name: "Starter",
-    price: "₹1,200",
-    period: "/month",
     description: "For indie developers",
     credits: 25,
     features: [
@@ -50,8 +47,6 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    price: "₹2,900",
-    period: "/month",
     description: "For growth teams",
     credits: 100,
     features: [
@@ -69,8 +64,6 @@ const plans = [
   {
     id: "agency",
     name: "Agency",
-    price: "₹7,900",
-    period: "/month",
     description: "For agencies & teams",
     credits: 500,
     features: [
@@ -92,6 +85,7 @@ const UpgradePage = () => {
   const [credits, setCredits] = useState(0);
   const [loading, setLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  const { currency, getPrice, loading: currencyLoading } = useCurrency();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -125,7 +119,7 @@ const UpgradePage = () => {
     setLoading(planId);
     try {
       const { data, error } = await supabase.functions.invoke("razorpay-order", {
-        body: { plan: planId, action: "create_order" },
+        body: { plan: planId, action: "create_order", currency: currency.code },
       });
 
       if (error) throw error;
@@ -219,8 +213,14 @@ const UpgradePage = () => {
                 <h3 className="text-lg font-semibold font-display">{plan.name}</h3>
                 <p className="text-sm text-muted-foreground">{plan.description}</p>
                 <div className="mt-4">
-                  <span className="text-3xl font-bold font-display">{plan.price}</span>
-                  <span className="text-muted-foreground text-sm">{plan.period}</span>
+                  {currencyLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold font-display">{getPrice(plan.id)}</span>
+                      <span className="text-muted-foreground text-sm">/month</span>
+                    </>
+                  )}
                 </div>
                 <p className="text-xs text-primary mt-1">{plan.credits} analyses/month</p>
               </div>
@@ -258,7 +258,6 @@ const UpgradePage = () => {
         })}
       </div>
 
-      {/* Feature comparison */}
       <div className="p-6 rounded-2xl bg-gradient-card border border-border">
         <h2 className="text-xl font-bold font-display mb-4">Why Upgrade?</h2>
         <div className="grid md:grid-cols-3 gap-6">

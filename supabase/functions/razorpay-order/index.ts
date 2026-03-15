@@ -7,11 +7,46 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PLANS: Record<string, { amount: number; credits: number; name: string }> = {
-  starter: { amount: 1200, credits: 25, name: "Starter" },    // ₹1200 / ~$12
-  pro: { amount: 2900, credits: 100, name: "Pro" },           // ₹2900 / ~$29
-  agency: { amount: 7900, credits: 500, name: "Agency" },     // ₹7900 / ~$79
+const PLANS: Record<string, { amount_inr: number; credits: number; name: string }> = {
+  starter: { amount_inr: 1200, credits: 25, name: "Starter" },
+  pro: { amount_inr: 2900, credits: 100, name: "Pro" },
+  agency: { amount_inr: 7900, credits: 500, name: "Agency" },
 };
+
+// Approximate exchange rates from INR
+const EXCHANGE_RATES: Record<string, number> = {
+  INR: 1,
+  USD: 0.012,
+  GBP: 0.0095,
+  EUR: 0.011,
+  CAD: 0.016,
+  AUD: 0.018,
+  JPY: 1.78,
+  SGD: 0.016,
+  AED: 0.044,
+  BRL: 0.06,
+  MXN: 0.2,
+  KRW: 16.3,
+  IDR: 189,
+  MYR: 0.053,
+  PHP: 0.67,
+  THB: 0.41,
+  ZAR: 0.22,
+  NGN: 18.5,
+  BDT: 1.43,
+  PKR: 3.32,
+  LKR: 3.54,
+};
+
+// Razorpay supported currencies (subset)
+const RAZORPAY_SUPPORTED = new Set([
+  "INR", "USD", "GBP", "EUR", "CAD", "AUD", "JPY", "SGD", "AED",
+  "BRL", "MXN", "KRW", "IDR", "MYR", "PHP", "THB", "ZAR", "NGN",
+  "BDT", "PKR", "LKR",
+]);
+
+// Zero-decimal currencies
+const ZERO_DECIMAL = new Set(["JPY", "KRW"]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,7 +54,8 @@ serve(async (req) => {
   }
 
   try {
-    const { plan, action } = await req.json();
+    const body = await req.json();
+    const { plan, action, currency: requestedCurrency } = body;
 
     const RAZORPAY_KEY_ID = Deno.env.get("RAZORPAY_KEY_ID");
     const RAZORPAY_KEY_SECRET = Deno.env.get("RAZORPAY_KEY_SECRET");
@@ -42,15 +78,14 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub;
+    const userId = user.id;
 
     if (action === "create_order") {
       const planData = PLANS[plan];
@@ -61,6 +96,18 @@ serve(async (req) => {
         });
       }
 
+      // Determine currency
+      const cur = (requestedCurrency && RAZORPAY_SUPPORTED.has(requestedCurrency))
+        ? requestedCurrency
+        : "INR";
+      const rate = EXCHANGE_RATES[cur] || 1;
+      const convertedAmount = planData.amount_inr * rate;
+
+      // Calculate amount in smallest unit
+      const amountSmallest = ZERO_DECIMAL.has(cur)
+        ? Math.round(convertedAmount)
+        : Math.round(convertedAmount * 100);
+
       // Create Razorpay order
       const credentials = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);
       const orderRes = await fetch("https://api.razorpay.com/v1/orders", {
@@ -70,16 +117,44 @@ serve(async (req) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: planData.amount * 100, // in paise
-          currency: "INR",
+          amount: amountSmallest,
+          currency: cur,
           receipt: `${userId}_${plan}_${Date.now()}`,
-          notes: { user_id: userId, plan },
+          notes: { user_id: userId, plan, currency: cur },
         }),
       });
 
       if (!orderRes.ok) {
         const errText = await orderRes.text();
         console.error("Razorpay order error:", errText);
+        // Fallback to INR if currency not supported
+        if (cur !== "INR") {
+          const fallbackRes = await fetch("https://api.razorpay.com/v1/orders", {
+            method: "POST",
+            headers: {
+              Authorization: `Basic ${credentials}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount: planData.amount_inr * 100,
+              currency: "INR",
+              receipt: `${userId}_${plan}_${Date.now()}`,
+              notes: { user_id: userId, plan, currency: "INR" },
+            }),
+          });
+          if (!fallbackRes.ok) throw new Error("Failed to create Razorpay order");
+          const fallbackOrder = await fallbackRes.json();
+          return new Response(
+            JSON.stringify({
+              order_id: fallbackOrder.id,
+              amount: fallbackOrder.amount,
+              currency: "INR",
+              key_id: RAZORPAY_KEY_ID,
+              plan_name: planData.name,
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
         throw new Error("Failed to create Razorpay order");
       }
 
@@ -98,7 +173,7 @@ serve(async (req) => {
     }
 
     if (action === "verify_payment") {
-      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json().catch(() => ({}));
+      const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
 
       // Verify signature using HMAC SHA256
       const encoder = new TextEncoder();
