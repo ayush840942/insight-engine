@@ -75,13 +75,16 @@ export const PricingSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">
-            Simple, Transparent <span className="text-gradient">Pricing</span>
+          <p className="text-sm text-muted-foreground uppercase tracking-wide mb-3">Pricing</p>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+            Simple, transparent
+            <br />
+            <span className="font-serif italic font-normal">pricing</span>
           </h2>
-          <p className="text-lg text-muted-foreground">Start free. Upgrade when you need more power.</p>
+          <p className="text-muted-foreground mt-4">Start free. Upgrade when you need more power.</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
             <motion.div
               key={plan.name}
@@ -91,24 +94,24 @@ export const PricingSection = () => {
               transition={{ delay: i * 0.1 }}
               className={`relative p-6 rounded-2xl border transition-all duration-300 ${
                 plan.highlighted
-                  ? "border-primary/50 bg-gradient-card glow"
-                  : "border-border bg-gradient-card hover:border-primary/20"
+                  ? "border-primary bg-card shadow-elevated"
+                  : "border-border bg-card hover:shadow-card"
               }`}
             >
               {plan.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-primary text-primary-foreground text-xs font-semibold">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">
                   Most Popular
                 </div>
               )}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold font-display">{plan.name}</h3>
+                <h3 className="text-lg font-semibold">{plan.name}</h3>
                 <p className="text-sm text-muted-foreground">{plan.description}</p>
                 <div className="mt-4">
                   {currencyLoading ? (
                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                   ) : (
                     <>
-                      <span className="text-4xl font-bold font-display">{getPrice(plan.id)}</span>
+                      <span className="text-4xl font-bold">{getPrice(plan.id)}</span>
                       <span className="text-muted-foreground">/month</span>
                     </>
                   )}
@@ -117,16 +120,16 @@ export const PricingSection = () => {
               <ul className="space-y-3 mb-6">
                 {plan.features.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                    <Check className="w-4 h-4 text-accent flex-shrink-0" />
                     <span className="text-muted-foreground">{feature}</span>
                   </li>
                 ))}
               </ul>
               <Button
                 onClick={() => navigate("/auth")}
-                className={`w-full rounded-xl ${
+                className={`w-full rounded-full ${
                   plan.highlighted
-                    ? "bg-gradient-primary text-primary-foreground hover:opacity-90"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
                     : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
               >

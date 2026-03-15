@@ -15,7 +15,7 @@ const testimonials = [
     rating: 5,
   },
   {
-    quote: "App Roast Mode is savage but honest. It pointed out UX issues our team had been blind to for months. Fixed them all in a sprint.",
+    quote: "App Roast Mode is savage but honest. It pointed out UX issues our team had been blind to for months.",
     author: "Kunal D.",
     role: "CTO, Social App",
     rating: 5,
@@ -27,7 +27,7 @@ const testimonials = [
     rating: 5,
   },
   {
-    quote: "I use the 30-day growth plan every month. It's like having a growth advisor on demand. Best ₹2,900 I spend.",
+    quote: "I use the 30-day growth plan every month. It's like having a growth advisor on demand.",
     author: "Amit P.",
     role: "Growth Lead, EdTech",
     rating: 5,
@@ -50,15 +50,15 @@ export const TestimonialsSection = () => {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold font-display mb-4">
-            Loved by <span className="text-gradient">App Teams</span>
+          <p className="text-sm text-muted-foreground uppercase tracking-wide mb-3">Testimonials</p>
+          <h2 className="text-4xl md:text-5xl font-bold tracking-tight">
+            Loved by
+            <br />
+            <span className="font-serif italic font-normal">app teams</span>
           </h2>
-          <p className="text-lg text-muted-foreground">
-            Developers, product managers, and growth teams trust Mobile Wisdom AI.
-          </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
           {testimonials.map((t, i) => (
             <motion.div
               key={i}
@@ -66,16 +66,16 @@ export const TestimonialsSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="p-6 rounded-2xl bg-gradient-card border border-border hover:border-primary/20 transition-all"
+              className="p-6 rounded-2xl bg-card border border-border hover:shadow-card transition-all"
             >
-              <div className="flex gap-1 mb-4">
+              <div className="flex gap-0.5 mb-4">
                 {Array.from({ length: t.rating }).map((_, j) => (
-                  <Star key={j} className="w-4 h-4 fill-primary text-primary" />
+                  <Star key={j} className="w-4 h-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
               <p className="text-foreground leading-relaxed mb-4 text-sm">"{t.quote}"</p>
               <div>
-                <p className="font-semibold font-display text-sm">{t.author}</p>
+                <p className="font-semibold text-sm">{t.author}</p>
                 <p className="text-xs text-muted-foreground">{t.role}</p>
               </div>
             </motion.div>

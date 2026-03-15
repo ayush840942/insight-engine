@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Zap, Mail, Lock, User } from "lucide-react";
+import { Mail, Lock, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
@@ -50,26 +50,26 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6">
-      <div className="absolute inset-0 bg-gradient-hero" />
-      <div className="relative w-full max-w-md">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Zap className="w-8 h-8 text-primary" />
-            <span className="text-2xl font-bold font-display">Mobile Wisdom AI</span>
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground font-bold">MW</span>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold font-display">{isLogin ? "Welcome back" : "Create your account"}</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold">{isLogin ? "Welcome back" : "Create your account"}</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             {isLogin ? "Log in to access your dashboard" : "Start analyzing apps with AI"}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4 p-6 rounded-2xl bg-gradient-card border border-border">
+        <form onSubmit={handleSubmit} className="space-y-4 p-6 rounded-2xl bg-card border border-border shadow-card">
           {!isLogin && (
             <div className="space-y-2">
               <Label htmlFor="name">Name</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input id="name" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 bg-secondary border-border" />
+                <Input id="name" placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} className="pl-10 bg-background border-border" />
               </div>
             </div>
           )}
@@ -77,22 +77,22 @@ const Auth = () => {
             <Label htmlFor="email">Email</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 bg-secondary border-border" required />
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="pl-10 bg-background border-border" required />
             </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 bg-secondary border-border" required minLength={6} />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-10 bg-background border-border" required minLength={6} />
             </div>
           </div>
-          <Button type="submit" disabled={loading} className="w-full bg-gradient-primary text-primary-foreground rounded-xl h-11 hover:opacity-90">
+          <Button type="submit" disabled={loading} className="w-full bg-primary text-primary-foreground rounded-full h-11 hover:bg-primary/90">
             {loading ? "Loading..." : isLogin ? "Log In" : "Create Account"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-primary hover:underline">
+            <button type="button" onClick={() => setIsLogin(!isLogin)} className="text-foreground font-medium hover:underline">
               {isLogin ? "Sign up" : "Log in"}
             </button>
           </p>
