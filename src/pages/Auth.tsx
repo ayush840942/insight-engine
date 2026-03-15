@@ -26,7 +26,7 @@ const Auth = () => {
         if (error) throw error;
         navigate("/dashboard");
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data: signUpData, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -35,7 +35,11 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast({ title: "Check your email", description: "We sent a verification link to your email." });
+        if (signUpData.session) {
+          navigate("/dashboard");
+        } else {
+          toast({ title: "Check your email", description: "We sent a verification link to your email." });
+        }
       }
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
