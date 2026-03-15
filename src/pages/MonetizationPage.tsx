@@ -2,21 +2,38 @@ import { useState } from "react";
 import { useLastApp } from "@/hooks/use-last-app";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCredits } from "@/hooks/use-credits";
 import { DollarSign, Loader2, TrendingUp, Zap, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Progress } from "@/components/ui/progress";
+import { PlanGate } from "@/components/PlanGate";
+import { useNavigate } from "react-router-dom";
 
-const MonetizationPage = () => {
+const MonetizationContent = () => {
   const { app, loading: appLoading } = useLastApp();
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<any>(null);
   const { toast } = useToast();
+  const { hasCredits, deductCredit } = useCredits();
+  const navigate = useNavigate();
 
   const handleAnalyze = async () => {
     if (!app) return;
+
+    if (!hasCredits) {
+      toast({ title: "No Credits", description: "You've used all your credits. Upgrade for more.", variant: "destructive" });
+      navigate("/dashboard/upgrade");
+      return;
+    }
+
     setLoading(true);
     try {
+      const deducted = await deductCredit();
+      if (!deducted) {
+        toast({ title: "No Credits", description: "Unable to deduct credit.", variant: "destructive" });
+        return;
+      }
+
       const { data: result, error } = await supabase.functions.invoke("analyze-monetization", {
         body: { appId: app.app_id, appName: app.app_name, description: app.description },
       });
@@ -51,6 +68,7 @@ const MonetizationPage = () => {
         <div className="text-center py-16 rounded-2xl bg-gradient-card border border-border">
           <DollarSign className="w-10 h-10 text-primary mx-auto mb-3" />
           <p className="text-lg font-display mb-2">Ready to analyze monetization for <strong>{app.app_name}</strong></p>
+          <p className="text-xs text-muted-foreground mb-3">Uses 1 credit</p>
           <Button onClick={handleAnalyze} disabled={loading} className="bg-gradient-primary text-primary-foreground rounded-xl hover:opacity-90">
             {loading ? <><Loader2 className="w-4 h-4 animate-spin mr-2" /> Analyzing...</> : "Analyze Monetization"}
           </Button>
@@ -67,7 +85,6 @@ const MonetizationPage = () => {
       <AnimatePresence>
         {data && !loading && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            {/* Score & Model */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="p-6 rounded-2xl bg-gradient-card border border-border text-center">
                 <DollarSign className={`w-8 h-8 mx-auto mb-2 ${scoreColor(data.monetization_score || 0)}`} />
@@ -87,7 +104,6 @@ const MonetizationPage = () => {
               </div>
             </div>
 
-            {/* Revenue Forecast */}
             {data.revenue_forecast && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -110,7 +126,6 @@ const MonetizationPage = () => {
               </div>
             )}
 
-            {/* Optimization Opportunities */}
             {data.optimization_opportunities && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -133,7 +148,6 @@ const MonetizationPage = () => {
               </div>
             )}
 
-            {/* Competitor Pricing */}
             {data.competitor_pricing && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3 flex items-center gap-2">
@@ -150,7 +164,6 @@ const MonetizationPage = () => {
               </div>
             )}
 
-            {/* Recommendations */}
             {data.recommendations && (
               <div className="p-6 rounded-2xl bg-gradient-card border border-border">
                 <h3 className="font-bold font-display mb-3">Recommendations</h3>
@@ -169,5 +182,11 @@ const MonetizationPage = () => {
     </div>
   );
 };
+
+const MonetizationPage = () => (
+  <PlanGate feature="monetization">
+    <MonetizationContent />
+  </PlanGate>
+);
 
 export default MonetizationPage;
