@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useCredits() {
@@ -6,9 +6,12 @@ export function useCredits() {
   const [plan, setPlan] = useState<string>("free");
   const [loading, setLoading] = useState(true);
 
-  const fetchCredits = async () => {
+  const fetchCredits = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     const { data } = await supabase
       .from("profiles")
       .select("credits_remaining, subscription_plan")
@@ -19,11 +22,24 @@ export function useCredits() {
       setPlan(data.subscription_plan);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchCredits();
-  }, []);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        fetchCredits();
+      }
+      if (event === "SIGNED_OUT") {
+        setCredits(null);
+        setPlan("free");
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [fetchCredits]);
 
   const deductCredit = async () => {
     const { data: { user } } = await supabase.auth.getUser();

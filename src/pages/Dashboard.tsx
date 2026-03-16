@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 const planLimits: Record<string, number> = {
-  free: 1,
+  free: 2,
   starter: 25,
   pro: 100,
   agency: 500,
