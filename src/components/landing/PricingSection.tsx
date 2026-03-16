@@ -8,8 +8,16 @@ const plans = [
   {
     id: "free",
     name: "Free",
-    description: "Try it out",
-    features: ["1 analysis per month", "Basic report with scores", "App Roast Mode", "Email support"],
+    description: "Get started for free",
+    features: [
+      "5 analyses per month",
+      "AI scores & report",
+      "ASO score & keywords",
+      "Store listing tips",
+      "Review intelligence",
+      "App Roast Mode 🔥",
+      "Email support",
+    ],
     cta: "Get Started Free",
     highlighted: false,
   },
@@ -19,10 +27,10 @@ const plans = [
     description: "For indie developers",
     features: [
       "25 analyses/month",
-      "Full detailed reports",
-      "Review intelligence",
+      "All Free features",
+      "Competitor intelligence",
       "Growth plan generator",
-      "Competitor detection",
+      "Feature gap analysis",
       "Priority support",
     ],
     cta: "Start Free Trial",
@@ -37,7 +45,7 @@ const plans = [
       "All Starter features",
       "Deep competitor analysis",
       "Monetization optimizer",
-      "ASO keyword suggestions",
+      "Revenue forecasting",
       "Export reports as PDF",
       "API access",
     ],
@@ -81,7 +89,7 @@ export const PricingSection = () => {
             <br />
             <span className="font-serif italic font-normal">pricing</span>
           </h2>
-          <p className="text-muted-foreground mt-4">Start free. Upgrade when you need more power.</p>
+          <p className="text-muted-foreground mt-4">Start free with 5 analyses. Upgrade when you need more.</p>
         </motion.div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">

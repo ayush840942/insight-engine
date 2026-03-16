@@ -17,9 +17,9 @@ const plans = [
   {
     id: "free",
     name: "Free",
-    description: "Try it out",
-    credits: 1,
-    features: ["1 analysis per month", "Basic report with scores", "App Roast Mode", "Email support"],
+    description: "Get started",
+    credits: 5,
+    features: ["5 analyses per month", "AI scores & report", "ASO score & keywords", "Store listing tips", "Review intelligence", "App Roast Mode 🔥", "Email support"],
     highlighted: false,
     icon: Zap,
   },
@@ -28,7 +28,7 @@ const plans = [
     name: "Starter",
     description: "For indie developers",
     credits: 25,
-    features: ["25 analyses per month", "Full detailed reports", "Review intelligence", "Growth plan generator", "Competitor detection", "Priority support"],
+    features: ["25 analyses per month", "All Free features", "Competitor intelligence", "Growth plan generator", "Feature gap analysis", "Priority support"],
     highlighted: false,
     icon: Zap,
   },
@@ -37,7 +37,7 @@ const plans = [
     name: "Pro",
     description: "For growth teams",
     credits: 100,
-    features: ["100 analyses per month", "All Starter features", "Deep competitor analysis", "Monetization optimizer", "ASO keyword suggestions", "Export reports as PDF", "API access"],
+    features: ["100 analyses per month", "All Starter features", "Deep competitor analysis", "Monetization optimizer", "Revenue forecasting", "Export reports as PDF", "API access"],
     highlighted: true,
     icon: Crown,
   },
@@ -155,7 +155,7 @@ const UpgradePage = () => {
                 plan.highlighted
                   ? "border-primary bg-card shadow-elevated"
                   : "border-border bg-card hover:shadow-card"
-              } ${isCurrent ? "ring-2 ring-primary/30" : ""}`}
+              } ${isCurrent ? "ring-2 ring-accent/30" : ""}`}
             >
               {plan.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-primary text-primary-foreground text-xs font-medium">

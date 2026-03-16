@@ -21,7 +21,6 @@ serve(async (req) => {
       });
     }
 
-    // Get auth user
     const authHeader = req.headers.get("Authorization");
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -38,12 +37,10 @@ serve(async (req) => {
       userId = user?.id || null;
     }
 
-    // Fetch app data from Google Play (using a public API approach)
     console.log("Fetching app data for:", appId);
     let appData: any = {};
     
     try {
-      // Use a simple fetch to get app page data
       const playStoreUrl = `https://play.google.com/store/apps/details?id=${appId}&hl=en&gl=us`;
       const response = await fetch(playStoreUrl, {
         headers: {
@@ -51,21 +48,12 @@ serve(async (req) => {
         },
       });
       const html = await response.text();
-
-      // Extract basic info from HTML
       const titleMatch = html.match(/<title>([^<]+)<\/title>/);
       const appName = titleMatch ? titleMatch[1].replace(" - Apps on Google Play", "").trim() : appId;
-      
-      // Extract description snippet
       const descMatch = html.match(/itemprop="description"[^>]*>([^<]{0,500})/);
       const description = descMatch ? descMatch[1].trim() : "Mobile application";
 
-      appData = {
-        appId,
-        appName,
-        description,
-        url: playStoreUrl,
-      };
+      appData = { appId, appName, description, url: playStoreUrl };
     } catch (fetchError) {
       console.error("Failed to fetch Play Store data:", fetchError);
       appData = {
@@ -76,13 +64,13 @@ serve(async (req) => {
       };
     }
 
-    // Use Lovable AI for analysis
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are an expert mobile app analyst. Analyze the following app and provide a comprehensive report. 
+    const systemPrompt = `You are an expert mobile app analyst specializing in ASO (App Store Optimization), user experience, and growth strategy. Analyze the following app and provide a comprehensive report.
+    
     Return ONLY valid JSON with this exact structure:
     {
       "app_name": "string",
@@ -91,9 +79,28 @@ serve(async (req) => {
       "retention_score": number (0-100),
       "monetization_score": number (0-100),
       "growth_score": number (0-100),
+      "aso_score": number (0-100, overall ASO health score),
       "strengths": ["strength1", "strength2", "strength3"],
       "weaknesses": ["weakness1", "weakness2", "weakness3"],
       "recommendations": ["recommendation1", "recommendation2", "recommendation3", "recommendation4", "recommendation5"],
+      "keyword_suggestions": [
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)},
+        {"keyword": "string", "difficulty": "low|medium|high", "volume": "low|medium|high", "relevance": number (0-100)}
+      ],
+      "store_listing_tips": {
+        "title_suggestion": "optimized title suggestion",
+        "short_description": "optimized short description (80 chars max)",
+        "icon_feedback": "feedback on icon design",
+        "screenshot_tips": ["tip1", "tip2", "tip3"]
+      },
+      "category_ranking_estimate": "string (e.g. Top 50 in Category)",
+      "conversion_rate_estimate": "string (e.g. 25-35%)",
       "roast": "A brutally honest 2-3 sentence critique of the app"
     }`;
 
@@ -109,13 +116,13 @@ serve(async (req) => {
           { role: "system", content: systemPrompt },
           {
             role: "user",
-            content: `Analyze this mobile app:
+            content: `Analyze this mobile app thoroughly:
 App ID: ${appData.appId}
 App Name: ${appData.appName}
 Description: ${appData.description}
 Play Store URL: ${appData.url}
 
-Provide a thorough analysis with realistic scores and actionable insights.`,
+Provide a thorough analysis with realistic scores, ASO keyword suggestions with difficulty/volume estimates, and store listing optimization tips. Be specific and actionable.`,
           },
         ],
       }),
@@ -124,14 +131,12 @@ Provide a thorough analysis with realistic scores and actionable insights.`,
     if (!aiResponse.ok) {
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limited. Please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (aiResponse.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const errText = await aiResponse.text();
@@ -142,10 +147,8 @@ Provide a thorough analysis with realistic scores and actionable insights.`,
     const aiData = await aiResponse.json();
     const content = aiData.choices?.[0]?.message?.content || "";
     
-    // Parse JSON from AI response
     let analysis: any;
     try {
-      // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
@@ -157,9 +160,7 @@ Provide a thorough analysis with realistic scores and actionable insights.`,
       throw new Error("Failed to parse AI analysis");
     }
 
-    // Save to database if user is authenticated
     if (userId) {
-      // Save app
       const { data: appRecord, error: appError } = await supabase
         .from("apps")
         .insert({
@@ -173,7 +174,6 @@ Provide a thorough analysis with realistic scores and actionable insights.`,
         .single();
 
       if (appRecord && !appError) {
-        // Save report
         await supabase.from("reports").insert({
           app_id: appRecord.id,
           user_id: userId,

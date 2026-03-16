@@ -32,8 +32,8 @@ import { Button } from "@/components/ui/button";
 const items = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, feature: null },
   { title: "Analyze App", url: "/dashboard/analyze", icon: Search, feature: "analyze" },
-  { title: "Competitors", url: "/dashboard/competitors", icon: Users, feature: "competitors" },
   { title: "Reviews", url: "/dashboard/reviews", icon: MessageSquareText, feature: "reviews" },
+  { title: "Competitors", url: "/dashboard/competitors", icon: Users, feature: "competitors" },
   { title: "Monetization", url: "/dashboard/monetization", icon: DollarSign, feature: "monetization" },
   { title: "Growth Plan", url: "/dashboard/growth", icon: Rocket, feature: "growth" },
   { title: "Reports", url: "/dashboard/reports", icon: FileText, feature: "reports" },
