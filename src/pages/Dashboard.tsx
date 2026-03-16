@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useCredits } from "@/hooks/use-credits";
 import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, AlertTriangle, Sparkles, Crown } from "lucide-react";
+import { BarChart3, TrendingUp, AlertTriangle, Sparkles, Crown, Tag, MessageSquareText, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 const planLimits: Record<string, number> = {
-  free: 2,
+  free: 5,
   starter: 25,
   pro: 100,
   agency: 500,
@@ -42,7 +42,7 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
-  const totalCredits = planLimits[plan] || 1;
+  const totalCredits = planLimits[plan] || 5;
   const usedCredits = totalCredits - (credits ?? 0);
   const usagePercent = Math.min((usedCredits / totalCredits) * 100, 100);
 
@@ -51,6 +51,12 @@ const Dashboard = () => {
     { title: "Avg Score", icon: TrendingUp, value: avgScore },
     { title: "Issues Found", icon: AlertTriangle, value: issueCount.toString() },
     { title: "Opportunities", icon: Sparkles, value: oppCount.toString() },
+  ];
+
+  const quickActions = [
+    { title: "Analyze App", description: "Run AI analysis on any Play Store app", icon: Search, url: "/dashboard/analyze", color: "text-accent" },
+    { title: "Review Intel", description: "Analyze user reviews & sentiment", icon: MessageSquareText, url: "/dashboard/reviews", color: "text-blue-500" },
+    { title: "ASO Keywords", description: "Get keyword suggestions for your app", icon: Tag, url: "/dashboard/analyze", color: "text-purple-500" },
   ];
 
   return (
@@ -64,12 +70,15 @@ const Dashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-5 rounded-2xl bg-card border border-border shadow-soft"
+          className="p-5 rounded-2xl bg-card border border-border"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Crown className="w-5 h-5 text-foreground" />
               <span className="font-semibold capitalize">{plan} Plan</span>
+              {plan === "free" && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">5 free analyses/month</span>
+              )}
             </div>
             <Button
               variant="outline"
@@ -98,7 +107,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
-            className="p-5 rounded-2xl bg-card border border-border shadow-soft"
+            className="p-5 rounded-2xl bg-card border border-border"
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm text-muted-foreground">{stat.title}</span>
@@ -109,13 +118,34 @@ const Dashboard = () => {
         ))}
       </div>
 
-      <div className="p-8 rounded-2xl bg-card border border-border shadow-soft text-center">
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          {quickActions.map((action, i) => (
+            <motion.button
+              key={action.title}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              onClick={() => navigate(action.url)}
+              className="p-5 rounded-2xl bg-card border border-border hover:border-accent/30 transition-all text-left group"
+            >
+              <action.icon className={`w-8 h-8 ${action.color} mb-3`} />
+              <h3 className="font-semibold mb-1">{action.title}</h3>
+              <p className="text-sm text-muted-foreground">{action.description}</p>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-8 rounded-2xl bg-card border border-border text-center">
         <Sparkles className="w-10 h-10 text-accent mx-auto mb-3" />
         <h2 className="text-xl font-bold mb-2">Ready to Analyze?</h2>
         <p className="text-muted-foreground mb-4 text-sm">Paste a Google Play Store URL to get started with AI-powered insights.</p>
-        <a href="/dashboard/analyze" className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors">
+        <Button onClick={() => navigate("/dashboard/analyze")} className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 px-8">
           Analyze an App
-        </a>
+        </Button>
       </div>
     </div>
   );
